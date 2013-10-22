@@ -10,8 +10,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="top"
-        android:layout_marginTop="@dimen/title_height"
         android:orientation="vertical" >
+
+        <include
+            android:id="@+id/main_title"
+            layout="@layout/above_title" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -53,10 +56,6 @@
             android:background="#f5f5f5"
             android:visibility="gone" />
     </LinearLayout>
-    
-    <include
-        android:id="@+id/main_title"
-        layout="@layout/above_title" />
 
     <FrameLayout
         android:id="@+id/fl_off"

@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.view.animation.Transformation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
@@ -65,7 +66,7 @@ import cn.eoe.app.widget.CustomButton;
 import com.umeng.fb.UMFeedbackService;
 
 public class MainActivity extends BaseSlidingFragmentActivity implements
-        OnClickListener, AnimationListener {
+        OnClickListener{
     private final String LIST_TEXT = "text";
     private final String LIST_IMAGEVIEW = "img";
 
@@ -470,17 +471,9 @@ public class MainActivity extends BaseSlidingFragmentActivity implements
                 lastY = y;
                 lastX = x;
                 if (dX < 8 && dY > 8 && !mIsTitleHide && !down) {
-                    Animation anim = AnimationUtils.loadAnimation(
-                            MainActivity.this, R.anim.push_top_in);
-//				anim.setFillAfter(true);
-                    anim.setAnimationListener(MainActivity.this);
-                    title.startAnimation(anim);
+                	animHideShowView(title, null, getResources().getDimensionPixelSize(R.dimen.title_height), false, 300);
                 } else if (dX < 8 && dY > 8 && mIsTitleHide && down) {
-                    Animation anim = AnimationUtils.loadAnimation(
-                            MainActivity.this, R.anim.push_top_out);
-//				anim.setFillAfter(true);
-                    anim.setAnimationListener(MainActivity.this);
-                    title.startAnimation(anim);
+                	animHideShowView(title, null, getResources().getDimensionPixelSize(R.dimen.title_height), true, 300);
                 } else {
                     return false;
                 }
@@ -658,47 +651,101 @@ public class MainActivity extends BaseSlidingFragmentActivity implements
 
     }
 
-    @Override
-    public void onAnimationEnd(Animation animation) {
-        // TODO Auto-generated method stub
-        if (mIsTitleHide) {
-            title.setVisibility(View.GONE);
-        } else {
-
-        }
-        mIsAnim = false;
-    }
-
-    @Override
-    public void onAnimationRepeat(Animation animation) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
-    public void onAnimationStart(Animation animation) {
-        // TODO Auto-generated method stub
-        title.setVisibility(View.VISIBLE);
-        if (mIsTitleHide) {
-            FrameLayout.LayoutParams lp = (LayoutParams) mlinear_listview
-                    .getLayoutParams();
-            lp.setMargins(0, 0, 0, 0);
-            mlinear_listview.setLayoutParams(lp);
-        } else {
-            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) title
-                    .getLayoutParams();
-            lp.setMargins(0, 0, 0, 0);
-            title.setLayoutParams(lp);
-            FrameLayout.LayoutParams lp1 = (LayoutParams) mlinear_listview
-                    .getLayoutParams();
-            lp1.setMargins(0,
-                    getResources().getDimensionPixelSize(R.dimen.title_height),
-                    0, 0);
-            mlinear_listview.setLayoutParams(lp1);
-        }
-    }
+//    @Override
+//    public void onAnimationEnd(Animation animation) {
+//        // TODO Auto-generated method stub
+//        if (mIsTitleHide) {
+//            title.setVisibility(View.GONE);
+//        } else {
+//
+//        }
+//        mIsAnim = false;
+//    }
+//
+//    @Override
+//    public void onAnimationRepeat(Animation animation) {
+//        // TODO Auto-generated method stub
+//
+//    }
+//
+//    @Override
+//    public void onAnimationStart(Animation animation) {
+//        // TODO Auto-generated method stub
+//        title.setVisibility(View.VISIBLE);
+//        if (mIsTitleHide) {
+//            FrameLayout.LayoutParams lp = (LayoutParams) mlinear_listview
+//                    .getLayoutParams();
+//            lp.setMargins(0, 0, 0, 0);
+//            mlinear_listview.setLayoutParams(lp);
+//        } else {
+//            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) title
+//                    .getLayoutParams();
+//            lp.setMargins(0, 0, 0, 0);
+//            title.setLayoutParams(lp);
+//            FrameLayout.LayoutParams lp1 = (LayoutParams) mlinear_listview
+//                    .getLayoutParams();
+//            lp1.setMargins(0,
+//                    getResources().getDimensionPixelSize(R.dimen.title_height),
+//                    0, 0);
+//            mlinear_listview.setLayoutParams(lp1);
+//        }
+//    }
 
     private float lastX = 0;
     private float lastY = 0;
 
+    
+    /**
+	 * 防止动画执行过程中背景空白，屏幕跳
+	 * 
+	 * @Description:
+	 * @param v
+	 * @param al
+	 * @param measureHeight
+	 * @param show
+	 * @param ainmTime
+	 * @see:
+	 * @since:
+	 * @author: zhuanggy
+	 * @date:2013-8-14
+	 */
+	private void animHideShowView(final View v, AnimationListener al, final int heightMeasure, final boolean show, int ainmTime) {
+
+		Animation anim = new Animation() {
+
+			int height = 0;
+
+			@Override
+			protected void applyTransformation(float interpolatedTime, Transformation t) {
+
+				if (interpolatedTime == 1) {
+					mIsAnim = false;
+					v.setVisibility(show ? View.VISIBLE : View.GONE);
+				} else {
+
+					if (show) {
+						if(v.getVisibility() == View.GONE) {
+							v.setVisibility(View.VISIBLE);
+						}
+						height = (int) (heightMeasure * interpolatedTime);
+					} else {
+						height = heightMeasure - (int) (heightMeasure * interpolatedTime);
+					}
+					v.getLayoutParams().height = height;
+					v.requestLayout();
+				}
+			}
+
+			@Override
+			public boolean willChangeBounds() {
+				return true;
+			}
+		};
+
+		if (al != null) {
+			anim.setAnimationListener(al);
+		}
+		anim.setDuration(ainmTime);
+		v.startAnimation(anim);
+	}
 }
